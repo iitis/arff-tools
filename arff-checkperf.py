@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+# Author: Pawel Foremski <pjf@iitis.pl>
+# Copyright (C) 2013 IITiS PAN <http://www.iitis.pl/>
+# Licensed under GNU GPL v3
+
+import sys
+import argparse
+from ArffReader import *
+
+def check(src, colgt, colres, colcnt):
+	db = dict()
+
+	for d in ArffReader(src):
+		gt = d[colgt]
+		if gt not in db:
+			db[gt] = { "total": 0, "ok": 0 }
+
+		res = d[colres]
+
+		if type(colcnt) == list and len(colcnt) > 0:
+			cnt = sum([int(d[c]) for c in colcnt])
+		else:
+			cnt = 1
+
+		db[gt]["total"] += cnt
+		if res.lower() == gt.lower():
+			db[gt]["ok"] += cnt
+
+	return db
+
+def showres(db):
+	print("%-15s\t%10s\t%10s\t%8s" % ("PROTOCOL", "TOTAL", "OK", "PERCENT"))
+	print("--------------------------------------------------------")
+
+	total = 0
+	ok = 0
+	pl = []
+
+	for proto,pdb in db.items():
+		total += pdb["total"]
+		ok += pdb["ok"]
+
+		if pdb["total"] == 0:
+			p = 0.0
+			print("%-15s\t%10d\t%10d\t%7.2f%%" % (proto, 0, 0, 0.0))
+		else:
+			p = 100.0 * pdb["ok"] / pdb["total"]
+			print("%-15s\t%10d\t%10d\t%7.2f%%" % (proto, pdb["total"], pdb["ok"], p))
+
+		pl.append(p)
+
+	if total > 0:
+		p = sum(pl) / len(pl)
+		print("--------------------------------------------------------")
+		print("%-15s\t%10d\t%10d\t%7.2f%%" % ("TOTAL", total, ok, 100.0*ok/total))
+		print("%-15s\t%10s\t%10s\t%7.2f%%" % ("AVERAGE", "", "", p))
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='Check traffic classification results')
+	parser.add_argument('res', help='column with result')
+	parser.add_argument('gt', help='column with ground truth')
+	parser.add_argument('-c','--count', action='append', help='column with count')
+	args = parser.parse_args()
+
+	db = check(sys.stdin, args.gt, args.res, args.count)
+	showres(db)
+
