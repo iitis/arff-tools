@@ -2,14 +2,18 @@
 # Copyright (C) 2013 IITiS PAN <http://www.iitis.pl/>
 # Licensed under GNU GPL v3
 
+import sys
+
 class ArffReader:
 	def __init__(self, src):
+		self.header = []
 		self.src = src
 		self.fields = []
 		self.seekbuf = dict()
 
 		# read field definitions
 		for line in src:
+			self.header.append(line)
 			line = line.strip()
 			if line[0:11] == '@attribute ':
 				self.fields.append(line.split()[1])
@@ -41,3 +45,17 @@ class ArffReader:
 				self.seekbuf[fid2] = d
 
 		raise Exception("flow %d not found" % fid)
+
+	def printl(self, line):
+		if self.header:
+			sys.stdout.writelines(self.header)
+			self.header = None
+
+		sys.stdout.write(line + "\n")
+
+	def printd(self, d):
+		if self.header:
+			sys.stdout.writelines(self.header)
+			self.header = None
+
+		sys.stdout.write(",".join([d[k] for k in self.fields]) + "\n")
