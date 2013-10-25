@@ -8,17 +8,28 @@ import argparse
 from ArffReader import *
 
 def check(d, todo):
-	for col,val in todo:
-		if d[col] != val: return False
+	for col,op,val in todo:
+		if op == "=":
+			if d[col] != val: return False
+		elif op == "<":
+			if int(d[col]) >= int(val): return False
+		elif op == ">":
+			if int(d[col]) <= int(val): return False
 	return True
 
 def checkor(d, todo):
-	for col,val in todo:
-		if d[col] == val: return True
+	for col,op,val in todo:
+		if op == "=":
+			if d[col] == val: return True
+		elif op == "<":
+			if int(d[col]) < int(val): return True
+		elif op == ">":
+			if int(d[col]) > int(val): return True
 	return False
 
 def main(src, todo, invert, useor):
 	src = ArffReader(src)
+	src.printh()
 
 	if useor:
 		func = checkor
@@ -33,15 +44,16 @@ def main(src, todo, invert, useor):
 			if func(d, todo): src.printd(d)
 
 if __name__ == "__main__":
-	p = argparse.ArgumentParser(description='Filter ARFF files by column values', epilog='''
-		E.g. in order to skip flows where c1 is 0, use %(prog)s -v c1,0''')
-	p.add_argument('expression', nargs='+', help='column,value')
+	p = argparse.ArgumentParser(description='Filter ARFF files by column values',
+		epilog='E.g. in order to skip flows where c1 is 0, use %(prog)s -v "c1 = 0"')
+	p.add_argument('expression', nargs='+', help='column OP value')
 	p.add_argument('-v','--invert-match', action='store_true', help='invert the sense of matching')
 	p.add_argument('-o','--or', dest='useor', action='store_true', help='use OR instead of AND for expressions')
 	p.add_argument("--exe", help="exec given Python file first")
 	args = p.parse_args()
 
-	todo = [p.split(',') for p in args.expression]
+	todo = [p.split(None,2) for p in args.expression]
+	print(todo)
 
 	if args.exe: exec(open(args.exe).read())
 

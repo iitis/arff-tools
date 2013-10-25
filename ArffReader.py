@@ -6,18 +6,40 @@ import sys
 
 class ArffReader:
 	def __init__(self, src):
-		self.header = []
 		self.src = src
+		self.headers = []
 		self.fields = []
+		self.types = dict()
+		self.relation = "''"
 		self.seekbuf = dict()
 
 		# read field definitions
 		for line in src:
-			self.header.append(line)
-			line = line.strip()
-			if line[0:11] == '@attribute ':
-				self.fields.append(line.split()[1])
-			elif line[0:5] == '@data':
+			self.headers.append(line)
+
+			# yuck!
+			v = line.strip().split(None, 2)
+			if len(v) == 0:
+				continue
+			elif len(v) == 1:
+				token = v[0].lower()
+				name = None
+				val = None
+			elif len(v) == 2:
+				token = v[0].lower()
+				name = v[1]
+				val = None
+			else:
+				token = v[0].lower()
+				name = v[1]
+				val = v[2]
+
+			if token == '@attribute':
+				self.fields.append(name)
+				self.types[name] = val
+			elif token == '@relation':
+				self.relation = name
+			elif token == '@data':
 				break
 
 	def __iter__(self): return self
@@ -46,16 +68,15 @@ class ArffReader:
 
 		raise Exception("flow %d not found" % fid)
 
-	def printl(self, line):
-		if self.header:
-			sys.stdout.writelines(self.header)
-			self.header = None
+	def printh(self, fields=None):
+		if fields:
+			sys.stdout.write("@relation %s\n" % self.relation)
+			for f in fields:
+				sys.stdout.write("@attribute %s %s\n" % (f, self.types[f]))
+			sys.stdout.write("@data\n")
+		else:
+			sys.stdout.writelines(self.headers)
 
-		sys.stdout.write(line + "\n")
-
-	def printd(self, d):
-		if self.header:
-			sys.stdout.writelines(self.header)
-			self.header = None
-
-		sys.stdout.write(",".join([d[k] for k in self.fields]) + "\n")
+	def printd(self, d, fields=None, sep=","):
+		if not fields: fields = self.fields
+		sys.stdout.write(sep.join([d[f] for f in fields]) + "\n")

@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+# Author: Pawel Foremski <pjf@iitis.pl>
+# Copyright (C) 2013 IITiS PAN <http://www.iitis.pl/>
+# Licensed under GNU GPL v3
+
+import sys
+import argparse
+from ArffReader import *
+
+def txt(src, clist):
+	print("# " + "\t".join(clist))
+	for d in src: src.printd(d, clist, "\t")
+
+def arff(src, clist):
+	src.printh(clist)
+	for d in src: src.printd(d, clist)
+
+if __name__ == "__main__":
+	p = argparse.ArgumentParser(description='Select columns in ARFF files as TXT file',
+		epilog='E.g. in order to select columns c1 and c2, use %(prog)s c1 c2')
+	p.add_argument('column', nargs='+', help='column name')
+	p.add_argument("-f","--format", choices=['txt', 'arff'], default='txt', help="output format")
+	p.add_argument("--exe", help="exec given Python file first")
+	args = p.parse_args()
+
+	if args.exe: exec(open(args.exe).read())
+
+	src = ArffReader(sys.stdin)
+
+	if args.format == "arff":
+		arff(src, args.column)
+	else:
+		txt(src, args.column)
