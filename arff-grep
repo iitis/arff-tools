@@ -12,9 +12,11 @@ def check(d, todo):
 		if op == "=":
 			if d[col] != val: return False
 		elif op == "<":
-			if int(d[col]) >= int(val): return False
+			if int(d[col]) >= val: return False
 		elif op == ">":
-			if int(d[col]) <= int(val): return False
+			if int(d[col]) <= val: return False
+		elif op == "in":
+			if d[col] not in val: return False
 	return True
 
 def checkor(d, todo):
@@ -22,9 +24,11 @@ def checkor(d, todo):
 		if op == "=":
 			if d[col] == val: return True
 		elif op == "<":
-			if int(d[col]) < int(val): return True
+			if int(d[col]) < val: return True
 		elif op == ">":
-			if int(d[col]) > int(val): return True
+			if int(d[col]) > val: return True
+		elif op == "in":
+			if d[col] in val: return True
 	return False
 
 def main(src, todo, invert, useor):
@@ -52,7 +56,14 @@ if __name__ == "__main__":
 	p.add_argument("--exe", help="exec given Python file first")
 	args = p.parse_args()
 
-	todo = [p.split(None,2) for p in args.expression]
+	todo = []
+	for p in args.expression:
+		(col,op,val) = p.split(None, 2)
+		if op == "in":
+			val = val.split(',')
+		if op in ["<", ">"]:
+			val = int(val)
+		todo.append((col, op, val))
 
 	if args.exe: exec(open(args.exe).read())
 
