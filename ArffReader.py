@@ -3,10 +3,10 @@
 # Licensed under GNU GPL v3
 
 import sys
+import csv
 
 class ArffReader:
 	def __init__(self, src):
-		self.src = src
 		self.headers = []
 		self.fields = []
 		self.types = dict()
@@ -42,13 +42,13 @@ class ArffReader:
 			elif token == '@data':
 				break
 
+		# switch to csv
+		self.src = csv.DictReader(src, fieldnames=self.fields, strict=True,
+			doublequote=False, escapechar='\\', quotechar='\'')
+
 	def __iter__(self): return self
 	def next(self): return self.__next__()
-	def __next__(self):
-		for line in self.src:
-			line = line.strip()
-			return dict(zip(self.fields, line.split(',')))
-		raise StopIteration
+	def __next__(self): return next(self.src)
 
 	def seek(self, fid):
 		if type(fid) == str:
@@ -79,4 +79,12 @@ class ArffReader:
 
 	def printd(self, d, fields=None, sep=","):
 		if not fields: fields = self.fields
-		sys.stdout.write(sep.join([d[f] for f in fields]) + "\n")
+		t = {"'":"\\'", "\\":"\\\\"}
+		l = []
+		for f in fields:
+			if self.types[f] == "string":
+				l.append("'" + ''.join(t.get(c,c) for c in d[f]) + "'")
+			else:
+				l.append(d[f])
+
+		sys.stdout.write(sep.join(l) + "\n")

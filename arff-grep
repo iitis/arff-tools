@@ -53,7 +53,6 @@ if __name__ == "__main__":
 	args = p.parse_args()
 
 	todo = [p.split(None,2) for p in args.expression]
-	print(todo)
 
 	if args.exe: exec(open(args.exe).read())
 
