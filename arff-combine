@@ -7,9 +7,9 @@ import sys
 import argparse
 from ArffReader import *
 
-def main(todo):
+def main(args, todo):
 	readers = []
-	cols = []
+	rcols = []
 
 	# open input files
 	for f,c in todo:
@@ -19,32 +19,69 @@ def main(todo):
 			f = open(f, "r")
 
 		readers.append(ArffReader(f))
-		cols.append([s.strip() for s in c.split(',')])
+		rcols.append([s.strip() for s in c.split(',')])
+
+	# emit the header
+	print("%% arff-combine %s" % " ".join(sys.argv[1:]))
+	print("@relation %s" % readers[0].relation)
+	for i,r,cols in zip(range(len(readers)), readers,rcols):
+		for c in cols:
+			# avoid name collisions
+			if i > 0 and not args.clash:
+				name = str(i+1) + c
+			else:
+				name = c
+			print("@attribute %s %s" % (name, r.types[c]))
+	print("@data")
 
 	# read line-by-line
+	t = {"'":"\\'", "\\":"\\\\"}
+	read = 0
+	dropped = 0
 	for d in readers[0]:
 		fid = int(d["fc_id"])
+		read += 1
 
 		data = [d]
-		for r in readers[1:]:
-			data.append(r.seek(fid))
+		for r,cols in zip(readers[1:], rcols[1:]):
+			try:
+				d = r.seek(fid, cols)
+				data.append(d)
+			except:
+				d = None
+				break
 
-		fields = [str(fid)]
-		for d,c in zip(data, cols):
-			fields.extend([d[x] for x in c])
+		if not d:
+			dropped += 1
+			continue
 
-		print(",".join(fields))
+		# select columns, quote string values
+		res = []
+		for src,d,cols in zip(readers, data, rcols):
+			for c in cols:
+				if src.types[c] == "string":
+					res.append("'" + ''.join(t.get(ch,ch) for ch in d[c]) + "'")
+				else:
+					res.append(d[c])
+
+		# print the result
+		print(",".join(res))
+
+	sys.stderr.write("%% read %d lines, dropped %d\n" % (read, dropped))
 
 if __name__ == "__main__":
 	p = argparse.ArgumentParser(description='Combine ARFF files by first column', epilog='''
 		E.g. in order to combine columns c1 and c2 from file1 and
 		column c3 from file2, use
-		%(prog)s ./file1 ./file2 -f c1,c2 -f c3''')
-	p.add_argument('file', nargs='+', help='input ARFF file')
-	p.add_argument('-f','--fields', action='append', help='fields to extract (CSV, one by one)')
+		%(prog)s ./file1 c1,c2 ./file2 c3''')
+	p.add_argument('src', nargs='+', help='input definitions')
+	p.add_argument('--clash', action='store_true', help='dont alter column names')
 	p.add_argument("--exe", help="exec given Python file first")
 	args = p.parse_args()
 
 	if args.exe: exec(open(args.exe).read())
 
-	main(zip(args.file, args.fields))
+	l = [x for x in enumerate(args.src)]
+	todo = zip([x for i,x in l if i%2==0], [x for i,x in l if i%2==1])
+
+	main(args, todo)

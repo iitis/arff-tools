@@ -7,6 +7,7 @@ import csv
 
 class ArffReader:
 	def __init__(self, src):
+		self.name = src.name
 		self.headers = []
 		self.fields = []
 		self.types = dict()
@@ -50,7 +51,7 @@ class ArffReader:
 	def next(self): return self.__next__()
 	def __next__(self): return next(self.src)
 
-	def seek(self, fid):
+	def seek(self, fid, fields=None):
 		if type(fid) == str:
 			fid = int(fid)
 
@@ -61,10 +62,19 @@ class ArffReader:
 
 		for d in self:
 			fid2 = int(d["fc_id"])
+
+			# try to reduce amount of data
+			if fields:
+				d = {key: d[key] for key in fields}
+
+			# a hit?
 			if fid == fid2:
 				return d
-			else:
-				self.seekbuf[fid2] = d
+
+			# store for later lookup
+			self.seekbuf[fid2] = d
+			if len(self.seekbuf) > 2000000:
+				break
 
 		raise Exception("flow %d not found" % fid)
 
