@@ -78,16 +78,18 @@ class ArffReader:
 
 		raise Exception("flow %d not found" % fid)
 
-	def printh(self, fields=None):
+	def printh(self, fields=None, nodata=False, dst=sys.stdout):
 		if fields:
-			sys.stdout.write("@relation %s\n" % self.relation)
+			dst.write("@relation %s\n" % self.relation)
 			for f in fields:
-				sys.stdout.write("@attribute %s %s\n" % (f, self.types[f]))
-			sys.stdout.write("@data\n")
+				dst.write("@attribute %s %s\n" % (f, self.types[f]))
 		else:
-			sys.stdout.writelines(self.headers)
+			dst.writelines(self.headers[:-1])
 
-	def printd(self, d, fields=None, sep=","):
+		if not nodata:
+			dst.write("@data\n")
+
+	def printd(self, d, fields=None, sep=",", add="", dst=sys.stdout):
 		if not fields: fields = self.fields
 		t = {"'":"\\'", "\\":"\\\\"}
 		l = []
@@ -97,4 +99,4 @@ class ArffReader:
 			else:
 				l.append(d[f])
 
-		sys.stdout.write(sep.join(l) + "\n")
+		dst.write(sep.join(l) + add + "\n")
