@@ -9,7 +9,8 @@ from ArffReader import *
 
 def txt(src, clist):
 	print("# " + "\t".join(clist))
-	for d in src: src.printd(d, clist, "\t")
+	for d in src:
+		src.printd(d, clist, "\t", quote=False)
 
 def arff(src, clist):
 	src.printh(clist)

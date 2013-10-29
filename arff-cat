@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+
+import sys
+
+def op(f):
+	if f == "-":
+		return sys.stdin
+	else:
+		return open(f, "r")
+
+# first file: everything
+f = op(sys.argv[1])
+for line in f: sys.stdout.write(line)
+
+# next files: skip all but data
+for f in sys.argv[2:]:
+	for line in op(f):
+		if line[0].isdigit():
+			sys.stdout.write(line)

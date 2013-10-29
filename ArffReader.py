@@ -89,14 +89,18 @@ class ArffReader:
 		if not nodata:
 			dst.write("@data\n")
 
-	def printd(self, d, fields=None, sep=",", add="", dst=sys.stdout):
+	def printd(self, d, fields=None, sep=",", add="", dst=sys.stdout, quote=True):
 		if not fields: fields = self.fields
-		t = {"'":"\\'", "\\":"\\\\"}
-		l = []
-		for f in fields:
-			if self.types[f] == "string":
-				l.append("'" + ''.join(t.get(c,c) for c in d[f]) + "'")
-			else:
-				l.append(d[f])
+
+		if quote:
+			t = {"'":"\\'", "\\":"\\\\"}
+			l = []
+			for f in fields:
+				if self.types[f] == "string":
+					l.append("'" + ''.join(t.get(c,c) for c in d[f]) + "'")
+				else:
+					l.append(d[f])
+		else:
+			l = [d[f] for f in fields]
 
 		dst.write(sep.join(l) + add + "\n")

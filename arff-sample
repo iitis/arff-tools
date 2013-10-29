@@ -4,7 +4,6 @@ import sys
 import random
 
 p = float(sys.argv[1]) / 100.0
-print(p)
 
 for line in sys.stdin:
 	if line[0] in ['@', '%']:
