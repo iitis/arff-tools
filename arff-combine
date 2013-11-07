@@ -13,13 +13,15 @@ def main(args, todo):
 
 	# open input files
 	for f,c in todo:
-		if f == "-":
-			f = sys.stdin
-		else:
-			f = open(f, "r")
+		f = open(f, "r") if f != "-" else sys.stdin
 
-		readers.append(ArffReader(f))
-		rcols.append([s.strip() for s in c.split(',')])
+		r = ArffReader(f)
+		readers.append(r)
+
+		if c == "*":
+			rcols.append(r.fields)
+		else:
+			rcols.append([s.strip() for s in c.split(',')])
 
 	# emit the header
 	print("%% arff-combine %s" % " ".join(sys.argv[1:]))

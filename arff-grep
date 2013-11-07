@@ -17,6 +17,7 @@ def check(d, todo):
 			if int(d[col]) <= val: return False
 		elif op == "in":
 			if d[col] not in val: return False
+		else: raise Exception("invalid operator:",op)
 	return True
 
 def checkor(d, todo):
@@ -29,6 +30,7 @@ def checkor(d, todo):
 			if int(d[col]) > val: return True
 		elif op == "in":
 			if d[col] in val: return True
+		else: raise Exception("invalid operator:",op)
 	return False
 
 def main(src, todo, invert, useor):
