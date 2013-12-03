@@ -11,6 +11,8 @@ def check(d, todo):
 	for col,op,val in todo:
 		if op == "=":
 			if d[col] != val: return False
+		elif op == "!=":
+			if d[col] == val: return False
 		elif op == "<":
 			if int(d[col]) >= val: return False
 		elif op == ">":
@@ -24,6 +26,8 @@ def checkor(d, todo):
 	for col,op,val in todo:
 		if op == "=":
 			if d[col] == val: return True
+		elif op == "!=":
+			if d[col] != val: return True
 		elif op == "<":
 			if int(d[col]) < val: return True
 		elif op == ">":
