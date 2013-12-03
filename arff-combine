@@ -41,13 +41,13 @@ def main(args, todo):
 	read = 0
 	dropped = 0
 	for d in readers[0]:
-		fid = int(d["fc_id"])
+		fid = d[args.id]
 		read += 1
 
 		data = [d]
 		for r,cols in zip(readers[1:], rcols[1:]):
 			try:
-				d = r.seek(fid, cols)
+				d = r.seek(fid, cols, args.id)
 				data.append(d)
 			except:
 				d = None
@@ -78,6 +78,7 @@ if __name__ == "__main__":
 		%(prog)s ./file1 c1,c2 ./file2 c3''')
 	p.add_argument('src', nargs='+', help='input definitions')
 	p.add_argument('--clash', action='store_true', help='dont alter column names')
+	p.add_argument('--id', default='fc_id', help='index column')
 	p.add_argument("--exe", help="exec given Python file first")
 	args = p.parse_args()
 

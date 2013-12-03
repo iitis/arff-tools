@@ -51,17 +51,14 @@ class ArffReader:
 	def next(self): return self.__next__()
 	def __next__(self): return next(self.src)
 
-	def seek(self, fid, fields=None):
-		if type(fid) == str:
-			fid = int(fid)
-
+	def seek(self, fid, fields=None, idkey="fc_id"):
 		if fid in self.seekbuf:
 			return self.seekbuf.pop(fid)
 
 		# TODO?: garbage collector
 
 		for d in self:
-			fid2 = int(d["fc_id"])
+			fid2 = d[idkey]
 
 			# try to reduce amount of data
 			if fields:
