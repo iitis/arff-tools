@@ -11,7 +11,11 @@ def check(src, colgt, colres, colcnt):
 	db = dict()
 
 	for d in ArffReader(src):
-		gt = d[colgt]
+		if colgt in d:
+			gt = d[colgt]
+		else:
+			gt = colgt
+
 		if gt not in db:
 			db[gt] = { "total": 0, "ok": 0 }
 

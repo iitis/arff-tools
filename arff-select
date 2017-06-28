@@ -8,18 +8,20 @@ import argparse
 from ArffReader import *
 
 def txt(src, clist):
+	if not clist: clist = src.fields
 	print("# " + "\t".join(clist))
 	for d in src:
 		src.printd(d, clist, "\t", quote=False)
 
 def arff(src, clist):
+	if not clist: clist = src.fields
 	src.printh(clist)
 	for d in src: src.printd(d, clist)
 
 if __name__ == "__main__":
 	p = argparse.ArgumentParser(description='Select columns in ARFF files as TXT file',
 		epilog='E.g. in order to select columns c1 and c2, use %(prog)s c1 c2')
-	p.add_argument('column', nargs='+', help='column name')
+	p.add_argument('column', nargs='*', help='column name')
 	p.add_argument("-f","--format", choices=['txt', 'arff'], default='txt', help="output format")
 	p.add_argument("--exe", help="exec given Python file first")
 	args = p.parse_args()
